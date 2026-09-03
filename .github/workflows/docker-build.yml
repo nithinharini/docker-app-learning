@@ -1,0 +1,36 @@
+name: Build and Test Docker Image
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t docker-aws-learning:${{ github.sha }} .
+
+      - name: Run container
+        run: |
+          docker run -d \
+            --name docker-aws-app \
+            -p 3000:3000 \
+            docker-aws-learning:${{ github.sha }}
+
+      - name: Test application
+        run: |
+          sleep 5
+          curl --fail http://localhost:3000
+
+      - name: Show container logs if needed
+        if: always()
+        run: docker logs docker-aws-app
